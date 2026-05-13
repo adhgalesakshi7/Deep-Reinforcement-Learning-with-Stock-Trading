@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Indian Stock AI Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero-panel">
+      <div>
+        <p class="eyebrow">Interactive project upgrade</p>
+        <h1>Indian Stock AI Dashboard</h1>
+        <p class="hero-copy">
+          Live market tracking, visual up/down movement, short-term price forecasting,
+          and buy, sell, or hold suggestions for Indian stocks.
+        </p>
+      </div>
+      <div class="hero-meta">
+        <div class="status-pill" id="marketStatus">Loading market status...</div>
+        <div class="last-updated" id="lastUpdated">Waiting for data...</div>
+      </div>
+    </header>
+
+    <section class="control-grid">
+      <label>
+        <span>Indian stock</span>
+        <select id="stockSelect"></select>
+      </label>
+      <label>
+        <span>History range</span>
+        <select id="rangeSelect">
+          <option value="1mo">1 month</option>
+          <option value="3mo">3 months</option>
+          <option value="6mo" selected>6 months</option>
+          <option value="1y">1 year</option>
+          <option value="2y">2 years</option>
+        </select>
+      </label>
+      <label>
+        <span>Chart interval</span>
+        <select id="intervalSelect">
+          <option value="5m">5 minutes</option>
+          <option value="15m">15 minutes</option>
+          <option value="1h" selected>1 hour</option>
+          <option value="1d">1 day</option>
+        </select>
+      </label>
+      <label>
+        <span>Auto refresh</span>
+        <select id="refreshSelect">
+          <option value="0">Off</option>
+          <option value="30">30 sec</option>
+          <option value="45" selected>45 sec</option>
+          <option value="60">60 sec</option>
+        </select>
+      </label>
+      <button id="refreshButton" class="primary-button">Refresh live data</button>
+    </section>
+
+    <section class="metric-grid">
+      <article class="metric-card">
+        <span>Last Price</span>
+        <strong id="lastPrice">--</strong>
+        <small id="liveChange">--</small>
+      </article>
+      <article class="metric-card">
+        <span>Forecast Price</span>
+        <strong id="forecastPrice">--</strong>
+        <small id="forecastMove">--</small>
+      </article>
+      <article class="metric-card">
+        <span>Recommendation</span>
+        <strong id="recommendation">--</strong>
+        <small id="confidence">--</small>
+      </article>
+      <article class="metric-card">
+        <span>Forecast Accuracy</span>
+        <strong id="accuracy">--</strong>
+        <small>Recent directional hit rate</small>
+      </article>
+    </section>
+
+    <section class="main-grid">
+      <div class="panel chart-panel">
+        <div class="panel-head">
+          <h2>Price movement</h2>
+          <p>See where the stock is moving up or down, plus the forecast point.</p>
+        </div>
+        <div id="priceChart" class="chart-frame"></div>
+      </div>
+      <div class="panel signal-panel">
+        <div class="panel-head">
+          <h2>Signal engine</h2>
+          <p>Model-assisted reasoning from price fluctuations and trend strength.</p>
+        </div>
+        <div id="signalBadge" class="signal-badge hold">Loading</div>
+        <ul id="reasonList" class="reason-list"></ul>
+      </div>
+    </section>
+
+    <section class="secondary-grid">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Indian market indices</h2>
+          <p>Nifty, Sensex, and Bank Nifty snapshot.</p>
+        </div>
+        <div id="indexTable"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Watchlist overview</h2>
+          <p>Live suggestions across multiple Indian stocks.</p>
+        </div>
+        <div id="watchlistTable"></div>
+      </div>
+    </section>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
