@@ -39,11 +39,11 @@ It also shows market index snapshots for:
 
 ## Files to run
 
-- [dashboard_app.py](C:/Users/HP/Documents/Codex/2026-04-21-files-mentioned-by-the-user-deep/Deep-Reinforcement-Learning-with-Stock-Trading-main/dashboard_app.py)
-- [server.py](C:/Users/HP/Documents/Codex/2026-04-21-files-mentioned-by-the-user-deep/Deep-Reinforcement-Learning-with-Stock-Trading-main/server.py)
-- [run_dashboard.bat](C:/Users/HP/Documents/Codex/2026-04-21-files-mentioned-by-the-user-deep/Deep-Reinforcement-Learning-with-Stock-Trading-main/run_dashboard.bat)
-- [run_dashboard.ps1](C:/Users/HP/Documents/Codex/2026-04-21-files-mentioned-by-the-user-deep/Deep-Reinforcement-Learning-with-Stock-Trading-main/run_dashboard.ps1)
-- [run_project.py](C:/Users/HP/Documents/Codex/2026-04-21-files-mentioned-by-the-user-deep/Deep-Reinforcement-Learning-with-Stock-Trading-main/run_project.py)
+- [dashboard_app.py](C:/Users/HP/Documents/Codex/2026-02-files-mentioned-by-the-user-deep/Deep-Reinforcement-Learning-with-Stock-Trading-main/dashboard_app.py)
+- [server.py](C:/Users/HP/Documents/Codex/2026-02-files-mentioned-by-the-user-deep/Deep-Reinforcement-Learning-with-Stock-Trading-main/server.py)
+- [run_dashboard.bat](C:/Users/HP/Documents/Codex/2026-02-files-mentioned-by-the-user-deep/Deep-Reinforcement-Learning-with-Stock-Trading-main/run_dashboard.bat)
+- [run_dashboard.ps1](C:/Users/HP/Documents/Codex/2026-02-files-mentioned-by-the-user-deep/Deep-Reinforcement-Learning-with-Stock-Trading-main/run_dashboard.ps1)
+- [run_project.py](C:/Users/HP/Documents/Codex/2026-02-files-mentioned-by-the-user-deep/Deep-Reinforcement-Learning-with-Stock-Trading-main/run_project.py)
 
 ## How to run the dashboard
 
@@ -79,7 +79,7 @@ C:\Users\HP\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\pyth
 
 The DRL run writes output files under:
 
-- [run_outputs](C:/Users/HP/Documents/Codex/2026-04-21-files-mentioned-by-the-user-deep/Deep-Reinforcement-Learning-with-Stock-Trading-main/run_outputs)
+- [run_outputs](C:/Users/HP/Documents/Codex/2026-02-files-mentioned-by-the-user-deep/Deep-Reinforcement-Learning-with-Stock-Trading-main/run_outputs)
 
 ## Notes
 
@@ -93,3 +93,4 @@ The DRL run writes output files under:
 The original notebook work was inspired by the paper:
 
 - [Deep Reinforcement Learning for Automated Stock Trading: An Ensemble Strategy](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3690996)
+
