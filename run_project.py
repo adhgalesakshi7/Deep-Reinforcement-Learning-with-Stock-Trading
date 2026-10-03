@@ -1,6 +1,5 @@
 import argparse
 import math
-import os
 import sys
 import time
 from pathlib import Path
@@ -179,6 +178,7 @@ class StockTradingEnv(gym.Env):
         self.max_steps = max(0, min(len(df) for df in self.stock_data.values()) - 1)
 
     def reset(self, seed=None, options=None):
+        del options
         super().reset(seed=seed)
         self.balance = self.initial_balance
         self.net_worth = self.initial_balance
@@ -312,6 +312,7 @@ def test_agent(env, agent, stock_data, n_tests=1000):
         "steps": [],
         "balances": [],
         "net_worths": [],
+        "initial_balance": env.get_attr("initial_balance")[0],
         "shares_held": {ticker: [] for ticker in stock_data.keys()},
     }
 
@@ -319,7 +320,7 @@ def test_agent(env, agent, stock_data, n_tests=1000):
     for i in range(n_tests):
         metrics["steps"].append(i)
         action = agent.predict(obs)
-        obs, rewards, dones, infos = env.step(action)
+        obs, _, dones, _ = env.step(action)
 
         metrics["balances"].append(env.get_attr("balance")[0])
         metrics["net_worths"].append(env.get_attr("net_worth")[0])
@@ -327,24 +328,36 @@ def test_agent(env, agent, stock_data, n_tests=1000):
         for ticker in stock_data.keys():
             metrics["shares_held"][ticker].append(env_shares_held.get(ticker, 0))
 
-        if dones:
+        if bool(dones[0]):
             obs = env.reset()
 
     return metrics
 
 
 def summarize_metrics(metrics, label):
-    returns = float(np.mean(metrics["net_worths"]))
-    std = float(np.std(metrics["net_worths"]))
-    sharpe = returns / std if std and not math.isclose(std, 0.0) else float("nan")
+    net_worths = np.asarray(metrics["net_worths"], dtype=float)
+    initial_balance = float(metrics.get("initial_balance", 1000.0))
+    average_net_worth = float(np.mean(net_worths)) if len(net_worths) else float("nan")
+    std = float(np.std(net_worths)) if len(net_worths) else float("nan")
+    sharpe = average_net_worth / std if std and not math.isclose(std, 0.0) else float("nan")
+    final_net_worth = float(net_worths[-1]) if len(net_worths) else float("nan")
+    total_return_pct = ((final_net_worth / initial_balance) - 1) * 100 if initial_balance else float("nan")
+    running_peak = np.maximum.accumulate(net_worths) if len(net_worths) else np.array([])
+    max_drawdown_pct = (
+        float(np.min((net_worths / running_peak - 1) * 100))
+        if len(net_worths) and np.all(running_peak)
+        else float("nan")
+    )
     return {
         "Agent": label,
-        "Return": returns,
+        "Average Net Worth": average_net_worth,
         "Standard Deviation": std,
         "Sharpe Ratio": sharpe,
-        "Final Net Worth": float(metrics["net_worths"][-1]),
-        "Max Net Worth": float(np.max(metrics["net_worths"])),
-        "Min Net Worth": float(np.min(metrics["net_worths"])),
+        "Final Net Worth": final_net_worth,
+        "Total Return %": total_return_pct,
+        "Max Net Worth": float(np.max(net_worths)) if len(net_worths) else float("nan"),
+        "Min Net Worth": float(np.min(net_worths)) if len(net_worths) else float("nan"),
+        "Max Drawdown %": max_drawdown_pct,
     }
 
 
@@ -390,6 +403,64 @@ def evaluate_split(name, dataset, agents, output_dir, n_tests):
     return summary_df
 
 
+def write_project_evidence(
+    output_dir: Path,
+    stock_data: dict[str, pd.DataFrame],
+    training_data: dict[str, pd.DataFrame],
+    validation_data: dict[str, pd.DataFrame],
+    test_data: dict[str, pd.DataFrame],
+    skipped: list[str],
+    dropped_after_split: list[str],
+    split_summaries: dict[str, pd.DataFrame],
+) -> Path:
+    total_rows = sum(len(df) for df in stock_data.values())
+    lines = [
+        "# Trading Project Evidence",
+        "",
+        "## Data Coverage",
+        f"- Tickers with usable CSVs: {len(stock_data)}",
+        f"- Total rows across raw CSVs: {total_rows}",
+        f"- Training tickers with aligned train/validation/test windows: {len(training_data)}",
+        f"- Validation tickers with aligned train/validation/test windows: {len(validation_data)}",
+        f"- Test tickers with aligned train/validation/test windows: {len(test_data)}",
+    ]
+
+    if skipped:
+        lines.extend(["", "## Skipped Symbols", f"- {', '.join(skipped)}"])
+
+    if dropped_after_split:
+        lines.extend(
+            [
+                "",
+                "## Dropped After Split",
+                f"- {', '.join(dropped_after_split)}",
+            ]
+        )
+
+    lines.extend(["", "## Evaluation Highlights"])
+    for split_name, summary_df in split_summaries.items():
+        best_row = summary_df.iloc[0]
+        lines.extend(
+            [
+                f"- {split_name.title()}: {best_row['Agent']} led with Sharpe {best_row['Sharpe Ratio']:.2f}, final net worth {best_row['Final Net Worth']:.2f}, and total return {best_row['Total Return %']:.2f}%.",
+            ]
+        )
+
+    lines.extend(
+        [
+            "",
+            "## What The Project Shows",
+            "- Multi-asset reinforcement learning on 30 large-cap U.S. equities.",
+            "- Technical indicators: RSI, MACD, signal line, CCI, and ADX.",
+            "- Comparison of PPO, A2C, DDPG, and an ensemble agent across train, validation, and test splits.",
+        ]
+    )
+
+    evidence_path = output_dir / "project_evidence.md"
+    evidence_path.write_text("\n".join(lines), encoding="utf-8")
+    return evidence_path
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--timesteps", type=int, default=10000)
@@ -432,18 +503,33 @@ def main():
         "Ensemble Agent": ensemble_agent,
     }
 
+    split_summaries = {}
+
     for split_name, dataset in [
         ("training", training_data),
         ("validation", validation_data),
         ("test", test_data),
     ]:
         summary_df = evaluate_split(split_name, dataset, agents, args.output_dir, args.tests)
+        split_summaries[split_name] = summary_df
         print("")
         print(f"{split_name.title()} metrics:")
         print(summary_df.to_string(index=False))
 
+    evidence_path = write_project_evidence(
+        args.output_dir,
+        stock_data,
+        training_data,
+        validation_data,
+        test_data,
+        skipped,
+        dropped_after_split,
+        split_summaries,
+    )
+
     print("")
     print(f"Saved outputs to: {args.output_dir}")
+    print(f"Saved project evidence to: {evidence_path}")
 
 
 if __name__ == "__main__":
